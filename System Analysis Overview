@@ -1,0 +1,47 @@
+System Overview
+The Vacation Tracking System (VTS) is an internal business process improvement tool designed to manage employee vacation time, sick leave, and personal time off within an organization.
+Key Stakeholders
+•	Employees
+•	Managers
+•	HR
+•	System Administrators
+Core System Requirements
+Functional Requirements
+1.	Authentication and Access
+•	Uses single sign-on (SSO) mechanisms
+•	Role-based access for different user types
+2.	Core Functionalities
+•	Submit vacation requests
+•	Manager approval of requests
+•	Email notifications
+•	Leave balance tracking
+•	Request cancellation
+•	HR and admin override capabilities
+Technical Requirements
+•	Rules-based system
+•	Integration with existing portal and hardware
+•	Activity logging for all transactions
+•	Easy-to-use interface
+Database Considerations
+Proposed database tables include:
+•	Employee
+•	Vacation Type
+•	Vacation Request
+•	Vacation Status
+•	Employee Balance
+•	Employee Type
+Key Use Cases
+Employee Flow
+1.	Login to system
+2.	Select vacation type
+3.	Submit vacation request
+4.	Receive status notifications
+Manager Flow
+1.	Review vacation requests
+2.	Approve or reject requests
+3.	Send notifications
+Validation Processes
+The system includes validation for:
+•	Date ranges
+•	Leave balance sufficiency
+•	Request eligibility
