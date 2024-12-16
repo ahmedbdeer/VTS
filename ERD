@@ -1,0 +1,52 @@
+Entities and Attributes:
+1.	Employee
+o	EmployeeID (Primary Key)
+o	Name
+o	Email
+o	EmployeeType (Manager, HR, Admin, Employee)
+o	ManagerID (Foreign Key to Employee)
+o	BalanceID (Foreign Key to Leave Balance)
+o	SSO_ID
+2.	Manager (Role, can also be an Employee)
+o	ManagerID (Primary Key)
+o	Name
+o	Email
+3.	Leave Type
+o	LeaveTypeID (Primary Key)
+o	LeaveTypeName (Vacation, Sick Leave, Personal Leave)
+o	LeaveTypeCode
+o	MaxAllowedDays
+4.	Leave Request
+o	RequestID (Primary Key)
+o	EmployeeID (Foreign Key to Employee)
+o	ManagerID (Foreign Key to Manager)
+o	LeaveTypeID (Foreign Key to Leave Type)
+o	StartDate
+o	EndDate
+o	Status (Pending, Approved, Rejected, Cancelled)
+o	RequestDate
+o	EmployeeComment
+o	ManagerComment
+5.	Leave Balance
+o	BalanceID (Primary Key)
+o	EmployeeID (Foreign Key to Employee)
+o	LeaveTypeID (Foreign Key to Leave Type)
+o	Year
+o	InitialBalance
+o	RemainingBalance
+6.	HR (Role, can also be an Employee)
+o	HRID (Primary Key)
+o	Name
+o	Email
+7.	System Admin
+o	AdminID (Primary Key)
+o	Name
+o	Email
+8.	Activity Log
+o	LogID (Primary Key)
+o	Action
+o	Timestamp
+o	EmployeeID (Foreign Key to Employee or Admin)
+o	RequestID (Foreign Key to Leave Request)
+o	ActionType (Approve, Reject, Edit, Cancel)
+o	Status (Success, Failure)
