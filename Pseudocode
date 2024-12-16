@@ -1,0 +1,200 @@
+the pseudocode for the Vacation Tracking System (VTS) 
+________________________________________
+1. Save Leave Request
+This function handles the creation of a new leave request.
+
+function SaveLeaveRequest(request):
+    // Validate the request details
+    valid = validateRequestDetails(request)
+    if not valid:
+        return "Error: Invalid request details"
+
+    // Check if the employee has sufficient leave balance
+    sufficientBalance = checkLeaveBalance(request.EmployeeID, request.LeaveTypeID, request.StartDate, request.EndDate)
+    if not sufficientBalance:
+        return "Error: Insufficient leave balance"
+    
+    // Save the request in the database
+    saveRequestToDatabase(request)
+
+    // Send an email notification to the manager
+    sendNotificationToManager(request.ManagerID, request.RequestID)
+
+    // Return success message
+    return "Request submitted successfully, awaiting manager approval"
+________________________________________
+
+2. Validate Request Details
+This function validates the leave request details (e.g., dates, employee, leave type).
+
+function validateRequestDetails(request):
+    // Check if the start date is before the end date
+    if request.StartDate > request.EndDate:
+        return false
+    
+    // Check if the employee exists in the database
+    if not employeeExists(request.EmployeeID):
+        return false
+    
+    // Check if the leave type is valid
+    if not leaveTypeExists(request.LeaveTypeID):
+        return false
+    
+    // Check if the employee's request date is valid (no past dates)
+    if request.RequestDate < currentDate():
+        return false
+    
+    return true
+________________________________________
+
+3. Check Leave Balance
+This function checks if the employee has enough leave balance for the requested leave period.
+
+function checkLeaveBalance(employeeID, leaveTypeID, startDate, endDate):
+    // Retrieve the employee's leave balance for the specified leave type
+    leaveBalance = getLeaveBalance(employeeID, leaveTypeID)
+
+    // Calculate the number of days requested
+    requestedDays = calculateLeaveDays(startDate, endDate)
+
+    // Check if the balance is enough to cover the request
+    if leaveBalance >= requestedDays:
+        return true
+    else:
+        return false
+________________________________________
+4. Save Request to Database
+This function saves the leave request to the database.
+
+function saveRequestToDatabase(request):
+    // Insert the leave request data into the 'Leave Requests' table
+    database.execute("INSERT INTO LeaveRequests (EmployeeID, ManagerID, LeaveTypeID, StartDate, EndDate, Status, RequestDate) VALUES (?, ?, ?, ?, ?, 'Pending', ?)",
+                     request.EmployeeID, request.ManagerID, request.LeaveTypeID, request.StartDate, request.EndDate, request.RequestDate)
+
+________________________________________
+5. Send Notification to Manager
+This function sends an email notification to the manager for approval.
+
+function sendNotificationToManager(managerID, requestID):
+    // Retrieve manager's email address from the database
+    managerEmail = getManagerEmail(managerID)
+
+    // Construct the email message
+    emailMessage = "You have a new leave request to review. Please click the link below to approve or reject the request: " +
+                   "http://system.portal/approveRequest/" + requestID
+
+    // Send the email
+    sendEmail(managerEmail, "Leave Request Pending Approval", emailMessage)
+________________________________________
+6. Approve or Reject Leave Request
+This function handles the approval or rejection of a leave request by the manager.
+
+function approveOrRejectLeaveRequest(requestID, approvalStatus, managerID):
+    // Retrieve the leave request details from the database
+    request = getLeaveRequest(requestID)
+
+    // Ensure that the manager is authorized to approve this request
+    if request.ManagerID != managerID:
+        return "Error: Unauthorized manager"
+
+    // Update the status of the leave request based on the approvalStatus
+    if approvalStatus == "Approve":
+        updateLeaveRequestStatus(requestID, "Approved")
+        updateEmployeeLeaveBalance(request.EmployeeID, request.LeaveTypeID, request.StartDate, request.EndDate)
+        sendNotificationToEmployee(request.EmployeeID, "Your leave request has been approved")
+    else if approvalStatus == "Reject":
+        updateLeaveRequestStatus(requestID, "Rejected")
+        sendNotificationToEmployee(request.EmployeeID, "Your leave request has been rejected")
+
+    // Return success message
+    return "Request status updated"
+________________________________________
+7. Update Leave Request Status
+This function updates the status of a leave request (e.g., Approved, Rejected).
+
+function updateLeaveRequestStatus(requestID, newStatus):
+    // Update the request status in the database
+    database.execute("UPDATE LeaveRequests SET Status = ? WHERE RequestID = ?", newStatus, requestID)
+________________________________________
+8. Update Employee Leave Balance
+This function updates the employee's leave balance after an approval.
+
+function updateEmployeeLeaveBalance(employeeID, leaveTypeID, startDate, endDate):
+    // Calculate the number of leave days taken
+    leaveDays = calculateLeaveDays(startDate, endDate)
+
+    // Deduct the leave days from the employee's balance
+    database.execute("UPDATE LeaveBalance SET RemainingBalance = RemainingBalance - ? WHERE EmployeeID = ? AND LeaveTypeID = ?",
+                     leaveDays, employeeID, leaveTypeID)
+________________________________________
+9. Send Notification to Employee
+This function sends a notification to the employee about the status of their leave request.
+
+function sendNotificationToEmployee(employeeID, message):
+    // Retrieve employee's email address from the database
+    employeeEmail = getEmployeeEmail(employeeID)
+
+    // Send the email
+    sendEmail(employeeEmail, "Leave Request Status Update", message)
+________________________________________
+
+
+10. Cancel Approved Leave Request
+This function handles the cancellation of an approved leave request.
+
+function cancelLeaveRequest(requestID, employeeID):
+    // Retrieve the leave request from the database
+    request = getLeaveRequest(requestID)
+
+    // Check if the request is approved and within the cancellable window
+    if request.Status != "Approved":
+        return "Error: Only approved requests can be cancelled"
+
+    // Update the leave request status to cancelled
+    updateLeaveRequestStatus(requestID, "Cancelled")
+
+    // Restore the leave balance
+    updateEmployeeLeaveBalance(employeeID, request.LeaveTypeID, request.StartDate, request.EndDate)
+
+    // Send a cancellation notification to the employee and manager
+    sendNotificationToEmployee(employeeID, "Your leave request has been cancelled")
+    sendNotificationToManager(request.ManagerID, requestID)
+
+    // Return success message
+    return "Leave request cancelled successfully"
+________________________________________
+
+11. Edit Pending Leave Request
+This function allows the employee to edit a pending leave request.
+
+function editPendingLeaveRequest(requestID, newDetails, employeeID):
+    // Retrieve the leave request from the database
+    request = getLeaveRequest(requestID)
+
+    // Check if the request is still pending
+    if request.Status != "Pending":
+        return "Error: Only pending requests can be edited"
+
+    // Update the request with new details
+    updateLeaveRequestInDatabase(requestID, newDetails)
+
+    // Validate the updated request (re-check balance, dates, etc.)
+    valid = validateRequestDetails(newDetails)
+    if not valid:
+        return "Error: Invalid updated request details"
+
+    // Return success message
+    return "Request updated successfully"
+________________________________________
+
+12. Update Leave Request in Database
+This function updates the leave request details in the database.
+
+function updateLeaveRequestInDatabase(requestID, newDetails):
+    // Update the leave request in the database with new details
+    database.execute("UPDATE LeaveRequests SET StartDate = ?, EndDate = ?, EmployeeComment = ?, ManagerComment = ? WHERE RequestID = ?",
+                     newDetails.StartDate, newDetails.EndDate, newDetails.EmployeeComment, newDetails.ManagerComment, requestID)
+
+
+
+
